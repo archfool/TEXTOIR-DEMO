@@ -43,9 +43,10 @@ class KCLManager:
                 args.num_train_epochs, args.lr, args.warmup_proportion)
 
         else:
-            args.num_labels = data.num_labels
-            args.backbone = backbone
-            self.model = model.set_model(args, data, 'bert')
+            # args.num_labels = data.num_labels
+            # args.backbone = backbone
+            # self.model = model.set_model(args, data, 'bert')
+            self.pretrained_model = restore_model(pretrain_manager.model, os.path.join(args.method_output_dir, 'pretrain'))
             self.model = restore_model(self.model, args.model_output_dir)
 
     def train(self, args, data): 
@@ -66,6 +67,7 @@ class KCLManager:
                 input_ids, input_mask, segment_ids, label_ids = batch
                 
                 simi = self.prepare_task_target(batch, self.pretrained_model)
+
                 loss = self.model(input_ids, segment_ids, input_mask, label_ids, mode = 'train', simi = simi, loss_fct = self.loss_fct)
                 
                 loss.backward()
@@ -103,8 +105,10 @@ class KCLManager:
                 wait += 1
                 if wait >= args.wait_patient:
                     break
-
-        self.model = best_model
+        if best_model is not None:
+            self.model = best_model
+        else:
+            print("Warning: best model is None")
 
         if args.save_model:
             save_model(self.model, args.model_output_dir)
@@ -165,7 +169,7 @@ class KCLManager:
     def test(self, args, data):
         
         y_true, y_pred = self.get_outputs(args, mode = 'test')
-        y_feat = self.get_outputs(args, mode = 'test', get_feats = True)
+        # y_feat = self.get_outputs(args, mode = 'test', get_feats = True)
         test_results = clustering_score(y_true, y_pred)
         cm = confusion_matrix(y_true, y_pred)
         
@@ -179,6 +183,6 @@ class KCLManager:
 
         test_results['y_true'] = y_true
         test_results['y_pred'] = y_pred
-        test_results['y_feat'] = y_feat
+        # test_results['y_feat'] = y_feat
 
         return test_results

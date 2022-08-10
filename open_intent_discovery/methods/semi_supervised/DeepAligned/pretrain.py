@@ -83,9 +83,9 @@ class PretrainDeepAlignedManager:
                 if wait >= args.wait_patient:
                     break
                 
-        self.model = best_model
+        self.model = self.model if best_model is None else best_model
 
-        if args.save_model:
+        if args.save_model and self.model is not None:
             pretrained_model_dir = os.path.join(args.method_output_dir, 'pretrain')
             self.logger.info("Pretrained model saved to %s", pretrained_model_dir)
             

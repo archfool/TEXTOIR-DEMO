@@ -144,7 +144,7 @@ class DeepAlignedManager:
 
         test_results['y_true'] = y_true
         test_results['y_pred'] = y_pred
-        test_results['y_feat'] = feats
+        # test_results['y_feat'] = feats
 
         return test_results
 
